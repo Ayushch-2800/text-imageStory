@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>AI Storybook — Text to Illustrated Story</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+:root {
+  --bg: #0f172a;
+  --card: #111827;
+  --muted: #9aa7bd;
+  --accent: #38bdf8;
+  --accent2: #a78bfa;
+  --text: #f1f5f9;
+  --border: #25324a;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(56,189,248,0.12), transparent 55%),
+              radial-gradient(1000px 600px at 100% 0%, rgba(167,139,250,0.12), transparent 55%),
+              var(--bg);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  padding: 28px 14px 60px;
+}
+
+.wrap { width: 100%; max-width: 980px; }
+
+h1 {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 10px;
+  letter-spacing: 0.2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sub {
+  text-align: center;
+  color: var(--muted);
+  margin: 0 0 20px;
+  font-size: 0.95rem;
+}
+
+.card {
+  background: color-mix(in oklab, var(--card) 92%, black 8%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInUp 0.45s ease forwards;
+}
+
+.form-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+
+label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #0b1220;
+  color: var(--text);
+  font-size: 1.05rem;
+  outline: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+textarea { resize: vertical; min-height: 96px; }
+
+select { appearance: none; cursor: pointer; }
+
+select:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 12px rgba(56,189,248,0.25);
+  border-color: var(--accent);
+}
+
+select:focus {
+  transform: scale(1.04);
+  box-shadow: 0 0 14px rgba(167,139,250,0.3);
+  border-color: var(--accent2);
+}
+
+input:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(56,189,248,0.15);
+}
+
+.form-two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #0a1020;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.2px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s;
+}
+
+.btn:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(0,0,0,0.35); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.status {
+  display: inline-block;
+  margin-left: 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #0b1220;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.scene {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.scene h3 { margin: 2px 0 10px; font-size: 1.05rem; }
+.scene p { line-height: 1.55; }
+
+.scene .prompt {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.scene img {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0b1220;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  opacity: 0;
+  transform: scale(0.985);
+  animation: fadeInScale 0.5s ease forwards;
+  animation-delay: 0.25s;
+}
+
+.link {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(56,189,248,0.5);
+}
+.link:hover { border-bottom-style: solid; }
+
+.footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 12px;
+}
+
+.loader {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.22);
+  border-top-color: #0a1020;
+  border-right-color: #0a1020;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  animation: spin 0.8s linear infinite;
+}
+
+.hidden { display: none; }
+
+@media (max-width: 860px) {
+  .form-two { grid-template-columns: 1fr; }
+  .scene { grid-template-columns: 1fr; }
+}
+
+@keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInScale { to { opacity: 1; transform: scale(1); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>AI Storybook</h1>
+  <p class="sub">Turn a simple idea into a multi‑scene, illustrated story.</p>
+
+  <!-- Form -->
+  <div class="card" style="animation-delay:0s">
+    <div class="form-grid">
+      <div>
+        <label for="idea">Story idea</label>
+        <textarea id="idea" placeholder='e.g., "A young girl finds a secret door in her grandmother&apos;s attic."'></textarea>
+      </div>
+
+      <div class="form-two">
+        <div>
+          <label for="genre">Genre</label>
+          <select id="genre">
+            <option>fantasy</option>
+            <option>mystery</option>
+            <option>sci-fi</option>
+            <option>comedy</option>
+            <option>drama</option>
+          </select>
+        </div>
+        <div>
+          <label for="tone">Tone</label>
+          <select id="tone">
+            <option>lighthearted</option>
+            <option>dark</option>
+            <option>epic</option>
+            <option>whimsical</option>
+            <option>hopeful</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-two">
+        <div>
+          <label for="audience">Audience</label>
+          <select id="audience">
+            <option>kids</option>
+            <option>teens</option>
+            <option>adults</option>
+          </select>
+        </div>
+        <div>
+          <label for="scene_count">Number of scenes</label>
+          <select id="scene_count">
+            <option>3</option>
+            <option selected>4</option>
+            <option>5</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label for="art_style">Art style</label>
+        <select id="art_style">
+          <option>watercolor</option>
+          <option>cartoon</option>
+          <option>anime</option>
+          <option>realistic</option>
+          <option>oil painting</option>
+        </select>
+      </div>
+
+      <div>
+        <button id="go" class="btn">
+          <span>Generate story + images</span>
+          <span id="spinner" class="loader hidden" aria-hidden="true"></span>
+        </button>
+        <span id="status" class="status"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Output -->
+  <div id="output"></div>
+
+  <p class="footer">Built for local demos. Keep your API key server‑side only.</p>
+</div>
+
+<script>
+const API_BASE = "http://127.0.0.1:8000";
+const $ = id => document.getElementById(id);
+
+const btn = $("go");
+const spinner = $("spinner");
+const statusEl = $("status");
+const out = $("output");
+
+function setLoading(isLoading, msg = "") {
+  btn.disabled = isLoading;
+  spinner.classList.toggle("hidden", !isLoading);
+  statusEl.textContent = msg;
+}
+
+async function postJSON(url, body) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "accept": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    let txt = "";
+    try { txt = await res.text(); } catch {}
+    throw new Error(`HTTP ${res.status}${txt ? ` — ${txt.substring(0,160)}` : ""}`);
+  }
+  return res.json();
+}
+
+function sceneCard(scene, idx) {
+  const delay = (idx + 1) * 0.08;
+  const imgHTML = scene.image_url
+    ? `<img src="${scene.image_url}" alt="Scene ${idx + 1} image" loading="lazy" />`
+    : `<div class="prompt" style="color:#fca5a5">No image generated.</div>`;
+
+  return `
+    <div class="card" style="animation-delay:${delay}s">
+      <div class="tags">
+        <span class="tag">Scene ${idx + 1}</span>
+        ${scene.image_url ? `<a class="tag link" href="${scene.image_url}" target="_blank" rel="noopener">Open image</a>` : ""}
+      </div>
+      <div class="scene" style="margin-top:10px;">
+        <div>
+          <h3>${scene.title}</h3>
+          <p class="muted" style="white-space:pre-wrap">${scene.narrative}</p>
+          <div class="prompt"><strong>Image prompt:</strong> ${scene.image_prompt}</div>
+          ${scene.image_error ? `<div class="prompt" style="color:#fca5a5">Image error: ${scene.image_error}</div>` : ""}
+        </div>
+        <div>${imgHTML}</div>
+      </div>
+    </div>
+  `;
+}
+
+function storyHeader(data) {
+  return `
+    <div class="card" style="animation-delay:0.02s">
+      <div class="tags">
+        <span class="tag">Genre: ${data.genre}</span>
+        <span class="tag">Tone: ${data.tone}</span>
+        <span class="tag">Audience: ${data.audience}</span>
+        <span class="tag">Style: ${data.art_style}</span>
+        <span class="tag">Scenes: ${data.scenes?.length ?? 0}</span>
+      </div>
+      <div class="prompt" style="margin-top:8px;"><strong>Idea:</strong> ${data.idea}</div>
+    </div>
+  `;
+}
+
+btn.addEventListener("click", async () => {
+  const idea = $("idea").value.trim();
+  if (!idea) {
+    alert("Please enter a story idea.");
+    $("idea").focus();
+    return;
+  }
+
+  const payload = {
+    idea,
+    genre: $("genre").value,
+    tone: $("tone").value,
+    audience: $("audience").value,
+    art_style: $("art_style").value,
+    scene_count: parseInt($("scene_count").value, 10)
+  };
+
+  out.innerHTML = "";
+  setLoading(true, "Generating story and images... This may take 20–40 seconds for 4 scenes.");
+
+  try {
+    const data = await postJSON(`${API_BASE}/generate-story`, payload);
+    if (!data.scenes || !Array.isArray(data.scenes)) {
+      out.innerHTML = `<div class="card"><div class="muted">Unexpected response from server.</div><pre class="muted" style="white-space:pre-wrap">${JSON.stringify(data, null, 2)}</pre></div>`;
+      setLoading(false, "Failed.");
+      return;
+    }
+    const header = storyHeader(data);
+    const scenes = data.scenes.map((s, i) => sceneCard(s, i)).join("");
+    out.innerHTML = header + scenes;
+    setLoading(false, "Done.");
+  } catch (err) {
+    out.innerHTML = `<div class="card"><div class="muted">Request failed: ${err.message}</div></div>`;
+    setLoading(false, "Failed.");
+  }
+});
+</script>
+</body>
+</html>
